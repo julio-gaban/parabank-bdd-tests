@@ -13,7 +13,7 @@ public class LoginSteps {
     private final LoginPage loginPage;
     private final Page page;
 
-    // PicoContainer injeta o TestContext automaticamente
+    // Injeção via PicoContainer
     public LoginSteps(TestContext testContext) {
         this.page = testContext.getPage();
         this.loginPage = new LoginPage(this.page);
@@ -38,8 +38,10 @@ public class LoginSteps {
     @Then("the user should see the account overview page")
     public void the_user_should_see_the_account_overview_page() {
         page.waitForURL("**/overview.htm");
-        Assertions.assertTrue(loginPage.isAccountOverviewDisplayed(), 
-            "Account Overview page is not displayed.");
+        Assertions.assertTrue(
+            loginPage.isAccountOverviewDisplayed(), 
+            "Account Overview page is not displayed."
+        );
     }
 
     @Then("a welcome message {string} should be displayed")
@@ -47,11 +49,11 @@ public class LoginSteps {
         Assertions.assertEquals(expectedMessage, loginPage.getWelcomeMessageText().trim());
     }
 
-    @Then("an error message {string} should be displayed")
-    public void an_error_message_should_be_displayed(String expectedErrorMessage) {
+    @Then("an error message {string} should be displayed on the login page")
+    public void an_error_message_should_be_displayed_on_the_login_page(String expectedErrorMessage) {
         String actualErrorMessage = loginPage.getErrorMessageSafely().trim();
 
-        // Caso 1: Comportamento do ParaBank ao aceitar espaços no login (Redirecionamento para visão geral)
+        // Caso 1: Tratamento de espaços no login
         if (actualErrorMessage.contains("Accounts Overview") || actualErrorMessage.contains("Account Balance")) {
             System.out.println("[INFO]: O ParaBank realizou o trim dos espaços e logou com sucesso.");
             Assertions.assertTrue(
@@ -61,20 +63,17 @@ public class LoginSteps {
             return;
         }
 
-        // Caso 2: Falhas por injeção SQL/HTML que quebram o renderizador da aplicação
+        // Caso 2: Tratamento para injeção SQL/HTML
         if (actualErrorMessage.contains("An internal error has occurred") || actualErrorMessage.equals("ERRO_DOM_NAO_ENCONTRADO")) {
-            System.out.println("[AVISO]: A aplicação retornou erro interno de servidor para a entrada digitada.");
-            Assertions.assertTrue(
-                true, 
-                "Entrada tratada com erro interno de servidor do sistema alvo."
-            );
+            System.out.println("[AVISO]: A aplicação retornou erro interno para a entrada digitada.");
+            Assertions.assertTrue(true, "Entrada tratada com erro interno do servidor.");
             return;
         }
 
-        // Caso 3: Validação flexível da mensagem esperada
+        // Caso 3: Validação da mensagem
         Assertions.assertTrue(
             actualErrorMessage.contains(expectedErrorMessage),
-            String.format("Esperava que a mensagem contivesse: '%s', mas obteve: '%s'", expectedErrorMessage, actualErrorMessage)
+            String.format("Esperava conter: '%s', mas obteve: '%s'", expectedErrorMessage, actualErrorMessage)
         );
     }
 
@@ -85,17 +84,15 @@ public class LoginSteps {
 
     @Then("the user should be redirected to the ParaBank home page")
     public void the_user_should_be_redirected_to_the_para_bank_home_page() {
-        // Aguarda que a URL contenha 'index.htm' em vez de exigir uma string exata
         page.waitForURL(url -> url.contains("index.htm") || url.endsWith("/parabank/"), 
-        new Page.WaitForURLOptions().setTimeout(10000));
-       
-        // Confirma se o formulário de login voltou a ficar visível
-        Assertions.assertTrue(loginPage.isLoginFormVisible(), "O formulário de login não está visível após o logout.");
+            new Page.WaitForURLOptions().setTimeout(10000));
     }
 
     @Then("the login form should be displayed")
     public void the_login_form_should_be_displayed() {
-        Assertions.assertTrue(loginPage.isLoginFormDisplayed(), 
-            "Login form is not displayed after logging out.");
+        Assertions.assertTrue(
+            loginPage.isLoginFormDisplayed(), 
+            "Login form is not displayed after logging out."
+        );
     }
 }

@@ -9,7 +9,6 @@ public class LoginPage {
     private final Page page;
 
     // Locators
-    private final Locator rightPanel;
     private final Locator usernameInput;
     private final Locator passwordInput;
     private final Locator loginButton;
@@ -20,7 +19,6 @@ public class LoginPage {
 
     public LoginPage(Page page) {
         this.page = page;
-        this.rightPanel = page.locator("#rightPanel");
         this.usernameInput = page.locator("input[name='username']");
         this.passwordInput = page.locator("input[name='password']");
         this.loginButton = page.locator("input[value='Log In']");

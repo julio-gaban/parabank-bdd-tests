@@ -15,12 +15,12 @@ Feature: User Login Functionality
   Scenario: Unsuccessful login with invalid credentials
     When the user enters username "invalidUser" and password "invalidPass"
     And clicks the login button
-    Then an error message "The username and password could not be verified." should be displayed
+    Then an error message "The username and password could not be verified." should be displayed on the login page
 
   Scenario Outline: Unsuccessful login with empty credentials
     When the user enters username "<username>" and password "<password>"
     And clicks the login button
-    Then an error message "Please enter a username and password." should be displayed
+    Then an error message "Please enter a username and password." should be displayed on the login page
 
     Examples:
       | username | password |
@@ -31,7 +31,7 @@ Feature: User Login Functionality
   Scenario Outline: Unsuccessful login with case sensitivity variation
     When the user enters username "<username>" and password "<password>"
     And clicks the login button
-    Then an error message "The username and password could not be verified." should be displayed
+    Then an error message "The username and password could not be verified." should be displayed on the login page
 
     Examples:
       | username | password |
@@ -42,7 +42,7 @@ Feature: User Login Functionality
   Scenario Outline: Unsuccessful login with leading or trailing whitespaces
     When the user enters username "<username>" and password "<password>"
     And clicks the login button
-    Then an error message "The username and password could not be verified." should be displayed
+    Then an error message "The username and password could not be verified." should be displayed on the login page
 
     Examples:
       | username | password |
@@ -52,7 +52,7 @@ Feature: User Login Functionality
   Scenario Outline: Unsuccessful login with special characters and SQL injection attempts
     When the user enters username "<username>" and password "<password>"
     And clicks the login button
-    Then an error message "The username and password could not be verified." should be displayed
+    Then an error message "The username and password could not be verified." should be displayed on the login page
 
     Examples:
       | username       | password |

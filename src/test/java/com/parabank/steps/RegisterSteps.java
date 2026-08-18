@@ -1,23 +1,20 @@
 package com.parabank.steps;
 
-import com.microsoft.playwright.Page;
 import com.parabank.context.TestContext;
 import com.parabank.pages.RegisterPage;
 import io.cucumber.java.en.Given;
-import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.cucumber.java.en.When;
+import org.junit.jupiter.api.Assertions;
 
 public class RegisterSteps {
 
-    private final Page page;
     private final RegisterPage registerPage;
+    private String lastGeneratedUsername;
 
+    // Injeção de dependência via PicoContainer usando TestContext
     public RegisterSteps(TestContext testContext) {
-        this.page = testContext.getPage();
-        this.registerPage = new RegisterPage(page);
+        this.registerPage = new RegisterPage(testContext.getPage());
     }
 
     @Given("the user is on the ParaBank register page")
@@ -25,50 +22,118 @@ public class RegisterSteps {
         registerPage.navigateToRegisterPage();
     }
 
-   @When("the user fills in the registration form with valid details")
+    @When("the user fills in the registration form with valid details")
     public void the_user_fills_in_the_registration_form_with_valid_details() {
-        // Gera um username único usando o timestamp em milissegundos
-        String uniqueUsername = "user" + System.currentTimeMillis();
-        
-        registerPage.fillRegistrationForm(
-            "Jane", "Doe", "123 Main St", "New York", 
-            "NY", "10001", "555-0199", "123-45-678", 
-            uniqueUsername, "password123"
+        this.lastGeneratedUsername = "user_" + System.currentTimeMillis();
+        registerPage.fillRegistrationFormWithValidData(this.lastGeneratedUsername);
+    }
+
+    @When("clicks the register button")
+    public void clicks_the_register_button() {
+        registerPage.clickRegisterButton();
+    }
+
+    @Then("the account should be created successfully")
+    public void the_account_should_be_created_successfully() {
+        Assertions.assertTrue(
+            registerPage.isRegistrationSuccessful(),
+            "Esperava que o cadastro fosse concluído com sucesso."
+        );
+    }
+
+    @Then("the user should see a welcome message with the newly created username")
+    public void the_user_should_see_a_welcome_message_with_the_newly_created_username() {
+        String welcomeMessage = registerPage.getSuccessMessageSafely();
+        Assertions.assertTrue(
+            welcomeMessage.contains(this.lastGeneratedUsername),
+            String.format("Mensagem de boas-vindas não contém o nome de usuário '%s'. Recebido: '%s'", this.lastGeneratedUsername, welcomeMessage)
         );
     }
 
     @When("the user attempts to register using an existing username {string}")
     public void the_user_attempts_to_register_using_an_existing_username(String username) {
-        registerPage.fillRegistrationForm(
-            "John", "Smith", "123 Main St", "New York", 
-            "NY", "10001", "555-0199", "123-45-678", 
-            username, "password123"
+        registerPage.fillRegistrationFormWithValidData(username);
+    }
+
+    @Then("an error message indicating that the username already exists should be displayed")
+    public void an_error_message_indicating_that_the_username_already_exists_should_be_displayed() {
+        String errorMessage = registerPage.getDuplicateUsernameErrorMessageSafely();
+        Assertions.assertTrue(
+            errorMessage.contains("This username already exists."),
+            String.format("Esperava erro de nome de usuário duplicado. Obtido: '%s'", errorMessage)
         );
     }
 
-    // PASSO FALTANTE 1: Clique no botão de registro
-    @When("clicks the register button")
-    public void clicks_the_register_button() {
-        registerPage.clickRegister();
+    @When("the user leaves the mandatory field {string} empty")
+    public void the_user_leaves_the_mandatory_field_empty(String fieldName) {
+        String username = "user_" + System.currentTimeMillis();
+        registerPage.fillRegistrationFormExceptField(fieldName, username);
     }
 
-    @Then("the account should be created successfully")
-    public void the_account_should_be_created_successfully() {
-        assertTrue(registerPage.isRegistrationSuccessful(), 
-            "Account registration was not successful.");
+    @When("fills all other registration fields with valid data")
+    public void fills_all_other_registration_fields_with_valid_data() {
+        // Método utilitário para manter compatibilidade com a Feature
     }
 
-    @Then("the user should see a welcome message with the newly created username")
-    public void the_user_should_see_a_welcome_message_with_the_newly_created_username() {
-        assertTrue(registerPage.getWelcomeMessageText().contains("Welcome"), 
-            "Welcome message was not displayed.");
+    @Then("an inline error message {string} should be displayed for the field {string}")
+    public void an_inline_error_message_should_be_displayed_for_the_field(String expectedError, String fieldName) {
+        String actualError = registerPage.getInlineFieldErrorSafely(fieldName);
+        Assertions.assertTrue(
+            actualError.contains(expectedError),
+            String.format("Esperava erro '%s' para o campo '%s', mas obteve '%s'", expectedError, fieldName, actualError)
+        );
     }
 
-    // PASSO FALTANTE 2: Validação da mensagem de erro de usuário existente
-    @Then("an error message indicating that the username already exists should be displayed")
-    public void an_error_message_indicating_that_the_username_already_exists_should_be_displayed() {
-        String errorMessage = registerPage.getUsernameErrorMessageText().trim();
-        assertEquals("This username already exists.", errorMessage,
-            "The error message for existing username was not as expected.");
+    @When("the user enters password {string} and confirm password {string}")
+    public void the_user_enters_password_and_confirm_password(String password, String confirmPassword) {
+        String username = "user_" + System.currentTimeMillis();
+        registerPage.fillRegistrationFormWithCustomPasswords(username, password, confirmPassword);
+    }
+
+    @Then("an error message {string} should be displayed on the register page")
+    public void an_error_message_should_be_displayed_on_the_register_page(String expectedErrorMessage) {
+        String actualError = registerPage.getGeneralErrorMessageSafely();
+        Assertions.assertTrue(
+            actualError.contains(expectedErrorMessage),
+            String.format("Esperava a mensagem '%s', mas obteve: '%s'", expectedErrorMessage, actualError)
+        );
+    }
+
+    @When("the user clicks the register button without filling any field")
+    public void the_user_clicks_the_register_button_without_filling_any_field() {
+        registerPage.clickRegisterButton();
+    }
+
+    @Then("error messages should be displayed for all mandatory fields")
+    public void error_messages_should_be_displayed_for_all_mandatory_fields() {
+        Assertions.assertTrue(
+            registerPage.areAllInlineErrorsDisplayed(),
+            "Esperava que mensagens de erro fossem exibidas para todos os campos obrigatórios."
+        );
+    }
+
+    @When("the user enters only whitespaces in the field {string}")
+    public void the_user_enters_only_whitespaces_in_the_field(String fieldName) {
+        String username = "user_" + System.currentTimeMillis();
+        registerPage.fillRegistrationFormExceptField(fieldName, username);
+        registerPage.fillFieldWithValue(fieldName, "   ");
+    }
+
+    @When("the user enters the SQL injection string {string} in the field {string}")
+    public void the_user_enters_the_sql_injection_string_in_the_field(String sqlPayload, String fieldName) {
+        String username = "user_" + System.currentTimeMillis();
+        registerPage.fillRegistrationFormExceptField(fieldName, username);
+        registerPage.fillFieldWithValue(fieldName, sqlPayload);
+    }
+
+    @Then("the system should handle the input safely without crashing or leaking sensitive data")
+    public void the_system_should_handle_the_input_safely_without_crashing_or_leaking_sensitive_data() {
+        String bodyText = registerPage.getPageBodyText();
+        
+        boolean hasJavaException = bodyText.contains("Exception") || bodyText.contains("org.springframework");
+        Assertions.assertFalse(
+            hasJavaException,
+            "A aplicação vazou detalhes de erro do backend/banco de dados ao receber SQL Injection."
+        );
     }
 }
