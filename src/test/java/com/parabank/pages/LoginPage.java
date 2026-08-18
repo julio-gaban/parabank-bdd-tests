@@ -9,18 +9,22 @@ public class LoginPage {
     private final Page page;
 
     // Locators
+    private final Locator rightPanel;
     private final Locator usernameInput;
     private final Locator passwordInput;
     private final Locator loginButton;
     private final Locator accountOverviewTitle;
     private final Locator welcomeMessage;
     private final Locator logoutLink;
+    private final Locator errorMessageLocator;
 
     public LoginPage(Page page) {
         this.page = page;
+        this.rightPanel = page.locator("#rightPanel");
         this.usernameInput = page.locator("input[name='username']");
         this.passwordInput = page.locator("input[name='password']");
         this.loginButton = page.locator("input[value='Log In']");
+        this.errorMessageLocator = page.locator("#rightPanel .error, #rightPanel p");
         
         // Filtra o h1.title para garantir unicidade e evitar o erro de strict mode
         this.accountOverviewTitle = page.locator("h1.title", new LocatorOptions().setHasText("Accounts Overview"));
@@ -89,6 +93,26 @@ public class LoginPage {
             return usernameInput.isVisible() && passwordInput.isVisible() && loginButton.isVisible();
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * Captura o texto da mensagem de erro de forma segura, evitando Timeouts longos.
+     */
+    public String getErrorMessageSafely() {
+        try {
+            // Aguarda a mensagem aparecer na tela
+            errorMessageLocator.first().waitFor(new Locator.WaitForOptions()
+                    .setState(WaitForSelectorState.VISIBLE)
+                    .setTimeout(3000));
+            return errorMessageLocator.first().innerText();
+        } catch (Exception e) {
+            // Fallback: se o painel falhar devido a SQL Injection / Erro 500
+            String bodyContent = page.locator("body").innerText();
+            if (bodyContent.contains("An internal error has occurred") || bodyContent.contains("Error!")) {
+                return bodyContent;
+            }
+            return "ERRO_DOM_NAO_ENCONTRADO";
         }
     }
 }
