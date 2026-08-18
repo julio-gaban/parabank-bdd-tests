@@ -1,0 +1,52 @@
+# ==========================================
+# Compilação e Artefatos do Maven
+# ==========================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# ==========================================
+# VS Code
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# ==========================================
+# Eclipse / IntelliJ IDEA (IDEs secundárias)
+# ==========================================
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ==========================================
+# Playwright & Artefatos de Teste
+# ==========================================
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+screenshots/
+videos/
+trace/
+
+# ==========================================
+# Logs e Relatórios do Cucumber / Sistema
+# ==========================================
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
