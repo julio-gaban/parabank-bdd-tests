@@ -16,7 +16,6 @@ public class TransferSteps {
     private final LoginPage loginPage;
     private final TransferPage transferPage;
 
-    // O PicoContainer injeta o TestContext automaticamente no construtor
     public TransferSteps(TestContext testContext) {
         Page page = testContext.getPage();
         this.loginPage = new LoginPage(page);
@@ -26,8 +25,6 @@ public class TransferSteps {
     @Given("the user is logged into their ParaBank account")
     public void theUserIsLoggedIntoTheirParaBankAccount() {
         loginPage.navigateToHomePage();
-        
-        // AJUSTE: Utiliza os métodos existentes na LoginPage
         loginPage.enterUsername("john");
         loginPage.enterPassword("demo");
         loginPage.clickLogin();
@@ -43,9 +40,9 @@ public class TransferSteps {
         transferPage.enterAmount(amount);
     }
 
-    @When("selects the source account and target account")
-    public void selectsTheSourceAccountAndTargetAccount() {
-        transferPage.selectAccounts();
+    @When("selects source account index {int} and target account index {int}")
+    public void selectsSourceAccountIndexAndTargetAccountIndex(int fromIndex, int toIndex) {
+        transferPage.selectAccountsByIndex(fromIndex, toIndex);
     }
 
     @When("clicks the transfer button")
@@ -65,5 +62,12 @@ public class TransferSteps {
         String actualAmount = transferPage.getTransferredAmountText();
         assertTrue(actualAmount.contains(expectedAmount),
             "The transferred amount displayed does not match the entered amount.");
+    }
+
+    @Then("an amount validation error {string} should be displayed")
+    public void anAmountValidationErrorShouldBeDisplayed(String expectedError) {
+        String actualError = transferPage.getErrorMessageText();
+        assertEquals(expectedError, actualError,
+            "The displayed error message does not match the expected message.");
     }
 }

@@ -16,11 +16,14 @@ public class TestContext {
             );
             context = browser.newContext();
             page = context.newPage();
+
+            // Configuração dos timeouts globais (em milissegundos)
+            page.setDefaultTimeout(5000);           // Reduz o tempo de espera padrão de locators/açoes de 30s para 5s
+            page.setDefaultNavigationTimeout(10000); // Define o tempo máximo de carregamento de paginas para 10s
         }
         return page;
     }
 
-    // Método auxiliar adicionado
     public boolean isPageInitialized() {
         return page != null;
     }
