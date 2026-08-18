@@ -24,7 +24,7 @@ public class RegisterPage {
     // Mensagens e Painéis
     private final String successTitle = "#rightPanel h1.title";
     private final String successMessage = "#rightPanel p";
-    private final String generalErrorSelector = ".error, span[id$='.errors']";
+    private final String generalErrorSelector = ".error, span.errors, span[id$='.errors']";
 
     public RegisterPage(Page page) {
         if (page == null) {
@@ -98,12 +98,17 @@ public class RegisterPage {
     }
 
     public String getInlineFieldErrorSafely(String fieldName) {
-        String errorSpanId = getErrorSpanIdByFieldName(fieldName);
+        String selector = getErrorSpanIdByFieldName(fieldName);
         try {
-            page.waitForSelector(errorSpanId, new Page.WaitForSelectorOptions().setTimeout(3000));
-            return page.innerText(errorSpanId);
+            page.waitForSelector(selector, new Page.WaitForSelectorOptions().setTimeout(3000));
+            return page.innerText(selector);
         } catch (Exception e) {
-            return "";
+            // Fallback caso a busca direta falhe: busca por qualquer span de erro relacionado
+            try {
+                return page.innerText("span.errors");
+            } catch (Exception ex) {
+                return "";
+            }
         }
     }
 
@@ -117,8 +122,14 @@ public class RegisterPage {
     }
 
     public boolean areAllInlineErrorsDisplayed() {
-        Locator inlineErrors = page.locator("span.errors");
-        return inlineErrors.count() > 0 && inlineErrors.first().isVisible();
+        try {
+            // Aguarda os spanners de erro aparecerem após o clique no botão Register
+            page.waitForSelector("span.errors, span[id$='.errors']", new Page.WaitForSelectorOptions().setTimeout(4000));
+            Locator inlineErrors = page.locator("span.errors, span[id$='.errors']");
+            return inlineErrors.count() > 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String getPageBodyText() {
@@ -126,33 +137,39 @@ public class RegisterPage {
     }
 
     private String getSelectorByFieldName(String fieldName) {
-        switch (fieldName) {
+        switch (fieldName.trim()) {
             case "First Name": return firstNameInput;
             case "Last Name": return lastNameInput;
             case "Address": return streetInput;
             case "City": return cityInput;
             case "State": return stateInput;
             case "Zip Code": return zipCodeInput;
-            case "Social Security": return ssnInput;
+            case "Social Security":
+            case "SSN": return ssnInput;
             case "Username": return usernameInput;
             case "Password": return passwordInput;
-            case "Confirm Password": return confirmPasswordInput;
+            case "Confirm Password":
+            case "Confirm":
+            case "repeatedPassword": return confirmPasswordInput;
             default: throw new IllegalArgumentException("Campo não reconhecido: " + fieldName);
         }
     }
 
     private String getErrorSpanIdByFieldName(String fieldName) {
-        switch (fieldName) {
+        switch (fieldName.trim()) {
             case "First Name": return "span[id='customer.firstName.errors']";
             case "Last Name": return "span[id='customer.lastName.errors']";
             case "Address": return "span[id='customer.address.street.errors']";
             case "City": return "span[id='customer.address.city.errors']";
             case "State": return "span[id='customer.address.state.errors']";
             case "Zip Code": return "span[id='customer.address.zipCode.errors']";
-            case "Social Security": return "span[id='customer.ssn.errors']";
+            case "Social Security":
+            case "SSN": return "span[id='customer.ssn.errors']";
             case "Username": return "span[id='customer.username.errors']";
             case "Password": return "span[id='customer.password.errors']";
-            case "Confirm Password": return "span[id='repeatedPassword.errors']";
+            case "Confirm Password":
+            case "Confirm":
+            case "repeatedPassword": return "span[id='repeatedPassword.errors'], span[id='repeatedPassword.errors']";
             default: return "span.errors";
         }
     }

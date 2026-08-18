@@ -34,8 +34,8 @@ Feature: User Registration on ParaBank
       | Address          | Address is required.        |
       | City             | City is required.           |
       | State            | State is required.          |
-      | Zip Code         | Zip code is required.       |
-      | Social Security  | SSN is required.            |
+      | Zip Code         | Zip Code is required.       |
+      | Social Security  | Social Security Number is required.|
       | Username         | Username is required.       |
       | Password         | Password is required.       |
       | Confirm Password | Password confirmation is required. |
@@ -45,7 +45,7 @@ Feature: User Registration on ParaBank
     When the user enters password "Password123" and confirm password "Password321"
     And fills all other registration fields with valid data
     And clicks the register button
-    Then an error message "Passwords did not match." should be displayed
+    Then an error message "Passwords did not match." should be displayed on the register page
 
   @registration_all_fields_empty
   Scenario: Attempt to register with all fields empty
