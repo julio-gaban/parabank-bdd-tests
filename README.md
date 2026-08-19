@@ -39,7 +39,7 @@ parabank-bdd-tests/
 └── README.md
 ```
 
-##⚙️ Pré-requisitos
+## ⚙️ Pré-requisitos
 Antes de iniciar, certifique-se de ter instalado em sua máquina:
 
 Java JDK 17 ou superior instalado e configurado no PATH.
